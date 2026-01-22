@@ -36,6 +36,15 @@
 .keyboard-hint {
   font-size: clamp(0.75rem, 2.5vw, 0.9rem);
   color: #888;
+  margin-bottom: 0.25rem;
+  max-width: 90%;
+  line-height: 1.5;
+  padding: 0 1rem;
+}
+
+.operator-hint {
+  font-size: clamp(0.7rem, 2.3vw, 0.85rem);
+  color: #4caf50;
   margin-bottom: 0.5rem;
   max-width: 90%;
   line-height: 1.5;

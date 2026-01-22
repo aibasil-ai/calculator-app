@@ -3,11 +3,10 @@ import './App.css'
 
 function App() {
   const [display, setDisplay] = useState('0')
-  const [firstOperand, setFirstOperand] = useState(null)
-  const [operation, setOperation] = useState(null)
-  const [waitingForSecondOperand, setWaitingForSecondOperand] = useState(false)
-  const [result, setResult] = useState(null)
-  const [expression, setExpression] = useState('') // 運算式歷史
+  const [expression, setExpression] = useState('') // 顯示用的運算式
+  const [tokens, setTokens] = useState([]) // 儲存運算式的 token 陣列 [數字, 運算符, 數字, ...]
+  const [currentNumber, setCurrentNumber] = useState('0') // 目前輸入的數字
+  const [lastResult, setLastResult] = useState(null) // 是否剛計算完結果
 
   // 取得運算符號顯示文字
   const getOperatorSymbol = (op) => {
@@ -20,196 +19,280 @@ function App() {
     }
   }
 
+  // 運算符優先級
+  const getPrecedence = (op) => {
+    if (op === 'multiply' || op === 'divide') return 2
+    if (op === 'add' || op === 'subtract') return 1
+    return 0
+  }
+
+  // 執行單一運算
+  const performOperation = (a, b, op) => {
+    const numA = parseFloat(a)
+    const numB = parseFloat(b)
+
+    switch (op) {
+      case 'add': return numA + numB
+      case 'subtract': return numA - numB
+      case 'multiply': return numA * numB
+      case 'divide':
+        if (numB === 0) throw new Error('除以零錯誤')
+        return numA / numB
+      default: throw new Error(`未知運算符: ${op}`)
+    }
+  }
+
+  // 使用正確的運算順序計算表達式
+  // 演算法：先處理乘除，再處理加減
+  const evaluateExpression = (tokenArray) => {
+    if (tokenArray.length === 0) return 0
+    if (tokenArray.length === 1) return parseFloat(tokenArray[0])
+
+    try {
+      // 複製陣列避免修改原始資料
+      let workingTokens = [...tokenArray]
+
+      // 第一階段：處理乘法和除法（優先級較高）
+      let i = 1
+      while (i < workingTokens.length) {
+        const op = workingTokens[i]
+        if (op === 'multiply' || op === 'divide') {
+          const left = parseFloat(workingTokens[i - 1])
+          const right = parseFloat(workingTokens[i + 1])
+          const result = performOperation(left, right, op)
+          // 將 left, op, right 替換為 result
+          workingTokens.splice(i - 1, 3, result)
+          // 不增加 i，因為陣列長度變短了
+        } else {
+          i += 2 // 跳到下一個運算符
+        }
+      }
+
+      // 第二階段：處理加法和減法（從左到右）
+      i = 1
+      while (i < workingTokens.length) {
+        const op = workingTokens[i]
+        if (op === 'add' || op === 'subtract') {
+          const left = parseFloat(workingTokens[i - 1])
+          const right = parseFloat(workingTokens[i + 1])
+          const result = performOperation(left, right, op)
+          workingTokens.splice(i - 1, 3, result)
+        } else {
+          i += 2
+        }
+      }
+
+      return workingTokens[0]
+    } catch (error) {
+      alert(`計算錯誤: ${error.message}`)
+      return 0
+    }
+  }
+
   // 處理數字鍵輸入
   const handleNumberClick = (num) => {
-    if (waitingForSecondOperand) {
+    // 如果剛算完結果，開始新的運算
+    if (lastResult !== null) {
+      setCurrentNumber(String(num))
       setDisplay(String(num))
-      setWaitingForSecondOperand(false)
-    } else {
-      setDisplay(display === '0' ? String(num) : display + num)
+      setTokens([])
+      setExpression('')
+      setLastResult(null)
+      return
     }
+
+    const newNumber = currentNumber === '0' ? String(num) : currentNumber + num
+    setCurrentNumber(newNumber)
+    setDisplay(newNumber)
   }
 
   // 處理運算符號輸入
   const handleOperationClick = (op) => {
-    const inputValue = parseFloat(display)
-
-    if (firstOperand === null) {
-      setFirstOperand(inputValue)
-      // 開始新的運算式
-      setExpression(display + ' ' + getOperatorSymbol(op))
-    } else if (operation) {
-      const currentResult = calculate(firstOperand, inputValue, operation)
-      currentResult.then((res) => {
-        setDisplay(String(res))
-        setFirstOperand(res)
-        // 更新運算式：加入目前的數字和新運算符
-        setExpression(prev => prev + ' ' + inputValue + ' ' + getOperatorSymbol(op))
-      })
-    } else {
-      // 連續換運算符
-      setExpression(prev => {
-        const parts = prev.split(' ')
-        parts[parts.length - 1] = getOperatorSymbol(op)
-        return parts.join(' ')
-      })
+    // 如果剛算完結果，用結果繼續計算
+    if (lastResult !== null) {
+      setTokens([lastResult])
+      setExpression(String(lastResult) + ' ' + getOperatorSymbol(op))
+      setCurrentNumber('0')
+      setDisplay(String(lastResult))
+      setLastResult(null)
+      setTokens([String(lastResult), op])
+      return
     }
 
-    setWaitingForSecondOperand(true)
-    setOperation(op)
+    const num = currentNumber
+
+    if (tokens.length === 0) {
+      // 第一個數字
+      setTokens([num, op])
+      setExpression(num + ' ' + getOperatorSymbol(op))
+    } else {
+      // 檢查最後一個是否是運算符（連續輸入運算符的情況）
+      if (typeof tokens[tokens.length - 1] === 'string' &&
+        ['add', 'subtract', 'multiply', 'divide'].includes(tokens[tokens.length - 1])) {
+        // 替換最後一個運算符
+        const newTokens = [...tokens]
+        newTokens[newTokens.length - 1] = op
+        setTokens(newTokens)
+        // 更新表達式顯示
+        setExpression(prev => {
+          const parts = prev.split(' ')
+          parts[parts.length - 1] = getOperatorSymbol(op)
+          return parts.join(' ')
+        })
+      } else {
+        // 正常情況：添加數字和運算符
+        setTokens([...tokens, num, op])
+        setExpression(prev => prev + ' ' + num + ' ' + getOperatorSymbol(op))
+      }
+    }
+
+    setCurrentNumber('0')
   }
 
   // 處理小數點輸入
   const handleDecimalClick = () => {
-    if (waitingForSecondOperand) {
+    if (lastResult !== null) {
+      setCurrentNumber('0.')
       setDisplay('0.')
-      setWaitingForSecondOperand(false)
+      setTokens([])
+      setExpression('')
+      setLastResult(null)
       return
     }
 
-    if (!display.includes('.')) {
-      setDisplay(display + '.')
+    if (!currentNumber.includes('.')) {
+      setCurrentNumber(currentNumber + '.')
+      setDisplay(currentNumber + '.')
     }
   }
 
-  const calculate = async (a, b, op) => {
-    let res = 0;
-    const numA = parseFloat(a);
-    const numB = parseFloat(b);
+  // 處理等號
+  const handleEquals = () => {
+    if (tokens.length === 0) return
 
-    if (isNaN(numA) || isNaN(numB)) {
-      alert('Error: Invalid number format');
-      return a;
+    // 檢查最後是否有待處理的運算符
+    const lastToken = tokens[tokens.length - 1]
+    let finalTokens = [...tokens]
+
+    if (['add', 'subtract', 'multiply', 'divide'].includes(lastToken)) {
+      // 最後是運算符，加入目前的數字
+      finalTokens.push(currentNumber)
+    } else if (tokens.length === 1) {
+      // 只有一個數字
+      const result = parseFloat(tokens[0])
+      setDisplay(String(result))
+      setExpression(tokens[0] + ' = ' + result)
+      setLastResult(result)
+      return
     }
 
-    try {
-      switch (op) {
-        case 'add':
-          res = numA + numB;
-          break;
-        case 'subtract':
-          res = numA - numB;
-          break;
-        case 'multiply':
-          res = numA * numB;
-          break;
-        case 'divide':
-          if (numB === 0) {
-            throw new Error('Cannot divide by zero');
-          }
-          res = numA / numB;
-          break;
-        default:
-          throw new Error(`Invalid operation: ${op}`);
+    // 計算結果（使用正確的運算優先順序）
+    const result = evaluateExpression(finalTokens)
+
+    // 建立完整的表達式字串
+    let fullExpression = ''
+    for (let i = 0; i < finalTokens.length; i++) {
+      if (i % 2 === 0) {
+        // 數字
+        fullExpression += finalTokens[i]
+      } else {
+        // 運算符
+        fullExpression += ' ' + getOperatorSymbol(finalTokens[i]) + ' '
       }
-
-      const data = {
-        result: res,
-        operation: op,
-        a: numA,
-        b: numB
-      };
-
-      setResult(data);
-      return res;
-
-    } catch (error) {
-      alert(`Error: ${error.message}`);
-      return a;
     }
+    fullExpression += ' = ' + result
+
+    setDisplay(String(result))
+    setExpression(fullExpression)
+    setTokens([])
+    setCurrentNumber(String(result))
+    setLastResult(result)
   }
 
-  const handleEquals = async () => {
-    const inputValue = parseFloat(display)
-
-    if (firstOperand !== null && operation) {
-      const calcResult = await calculate(firstOperand, inputValue, operation)
-      // 更新運算式：加入最後的數字和結果
-      setExpression(prev => prev + ' ' + inputValue + ' = ' + calcResult)
-      setDisplay(String(calcResult))
-      setFirstOperand(null)
-      setOperation(null)
-      setWaitingForSecondOperand(false)
-    }
-  }
-
+  // 清除
   const handleClear = () => {
     setDisplay('0')
-    setFirstOperand(null)
-    setOperation(null)
-    setWaitingForSecondOperand(false)
-    setResult(null)
-    setExpression('') // 清除運算式
+    setCurrentNumber('0')
+    setTokens([])
+    setExpression('')
+    setLastResult(null)
   }
 
+  // 退格
   const handleBackspace = () => {
-    if (display.length > 1) {
-      setDisplay(display.slice(0, -1))
-    } else {
+    if (lastResult !== null) {
+      // 剛計算完，退格就清除
+      handleClear()
+      return
+    }
+
+    if (currentNumber.length > 1) {
+      const newNumber = currentNumber.slice(0, -1)
+      setCurrentNumber(newNumber)
+      setDisplay(newNumber)
+    } else if (currentNumber !== '0') {
+      setCurrentNumber('0')
       setDisplay('0')
     }
   }
 
-  // Keyboard event handler
+  // 鍵盤事件處理
   useEffect(() => {
     const handleKeyDown = (event) => {
       const key = event.key
 
-      // Prevent default behavior for calculator keys
+      // 防止預設行為
       if (/^[0-9+\-*/=.]$/.test(key) || key === 'Enter' || key === 'Escape' || key === 'Backspace') {
         event.preventDefault()
       }
 
-      // Number keys (0-9) - both main keyboard and numpad
+      // 數字鍵
       if (/^[0-9]$/.test(key)) {
         handleNumberClick(parseInt(key))
       }
-      // Decimal point
-      else if (key === '.' || key === 'Decimal') {
+      // 小數點
+      else if (key === '.') {
         handleDecimalClick()
       }
-      // Addition
+      // 加法
       else if (key === '+') {
         handleOperationClick('add')
       }
-      // Subtraction
+      // 減法
       else if (key === '-') {
         handleOperationClick('subtract')
       }
-      // Multiplication
+      // 乘法
       else if (key === '*') {
         handleOperationClick('multiply')
       }
-      // Division
+      // 除法
       else if (key === '/') {
         handleOperationClick('divide')
       }
-      // Equals
+      // 等號
       else if (key === 'Enter' || key === '=') {
         handleEquals()
       }
-      // Clear
+      // 清除
       else if (key === 'Escape' || key === 'c' || key === 'C') {
         handleClear()
       }
-      // Backspace
+      // 退格
       else if (key === 'Backspace') {
         handleBackspace()
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
-
-    // Cleanup
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [display, firstOperand, operation, waitingForSecondOperand])
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [currentNumber, tokens, lastResult])
 
   return (
     <div className="calculator-container">
       <h1>Calculator</h1>
       <p className="keyboard-hint">💡 可使用鍵盤數字鍵、運算符號 (+, -, *, /)、Enter (=)、Esc (清除)、Backspace</p>
+      <p className="operator-hint">✨ 支援四則運算優先順序：先乘除，後加減</p>
       <div className="calculator">
         <div className="display">{display}</div>
         <div className="buttons">
