@@ -8,8 +8,7 @@ function App() {
   const [waitingForSecondOperand, setWaitingForSecondOperand] = useState(false)
   const [result, setResult] = useState(null)
 
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
-
+  // 處理數字鍵輸入
   const handleNumberClick = (num) => {
     if (waitingForSecondOperand) {
       setDisplay(String(num))
@@ -19,56 +18,81 @@ function App() {
     }
   }
 
-  const handleDecimalClick = () => {
-    if (waitingForSecondOperand) {
-      setDisplay('0.')
-      setWaitingForSecondOperand(false)
-    } else if (display.indexOf('.') === -1) {
-      setDisplay(display + '.')
-    }
-  }
-
-  const handleOperationClick = async (op) => {
+  // 處理運算符號輸入
+  const handleOperationClick = (op) => {
     const inputValue = parseFloat(display)
 
     if (firstOperand === null) {
       setFirstOperand(inputValue)
     } else if (operation) {
-      const result = await calculate(firstOperand, inputValue, operation)
-      setDisplay(String(result))
-      setFirstOperand(result)
+      const currentResult = calculate(firstOperand, inputValue, operation)
+      currentResult.then((res) => {
+        setDisplay(String(res))
+        setFirstOperand(res)
+      })
     }
 
     setWaitingForSecondOperand(true)
     setOperation(op)
   }
 
+  // 處理小數點輸入
+  const handleDecimalClick = () => {
+    if (waitingForSecondOperand) {
+      setDisplay('0.')
+      setWaitingForSecondOperand(false)
+      return
+    }
+
+    if (!display.includes('.')) {
+      setDisplay(display + '.')
+    }
+  }
+
   const calculate = async (a, b, op) => {
+    let res = 0;
+    const numA = parseFloat(a);
+    const numB = parseFloat(b);
+
+    if (isNaN(numA) || isNaN(numB)) {
+        alert('Error: Invalid number format');
+        return a;
+    }
+
     try {
-      const response = await fetch(`${API_URL}/calculate`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          operation: op,
-          a: a,
-          b: b,
-        }),
-      })
+        switch (op) {
+            case 'add':
+                res = numA + numB;
+                break;
+            case 'subtract':
+                res = numA - numB;
+                break;
+            case 'multiply':
+                res = numA * numB;
+                break;
+            case 'divide':
+                if (numB === 0) {
+                    throw new Error('Cannot divide by zero');
+                }
+                res = numA / numB;
+                break;
+            default:
+                throw new Error(`Invalid operation: ${op}`);
+        }
 
-      const data = await response.json()
+        const data = {
+            result: res,
+            operation: op,
+            a: numA,
+            b: numB
+        };
 
-      if (response.ok) {
-        setResult(data)
-        return data.result
-      } else {
-        alert(`Error: ${data.error}`)
-        return a
-      }
+        setResult(data);
+        return res;
+
     } catch (error) {
-      alert(`Network error: ${error.message}`)
-      return a
+        alert(`Error: ${error.message}`);
+        return a;
     }
   }
 
