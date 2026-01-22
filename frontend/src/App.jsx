@@ -8,8 +8,7 @@ function App() {
   const [waitingForSecondOperand, setWaitingForSecondOperand] = useState(false)
   const [result, setResult] = useState(null)
 
-  // Use relative URL for production (Vercel) and localhost for development
-  const API_URL = import.meta.env.PROD ? '/api' : 'http://localhost:5000/api'
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
   const handleNumberClick = (num) => {
     if (waitingForSecondOperand) {

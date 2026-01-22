@@ -2,16 +2,10 @@
 
 一個功能完整的計算機應用程式，包含 Python 後端和 React 前端。
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/aibasil-ai/calculator-app)
-
-🌐 **Live Demo:** [部署到 Vercel 後會有 URL]
-
 ## 專案結構
 
 ```
 calculator-app/
-├── api/                  # Vercel Serverless Functions
-│   └── index.py         # Python API 端點
 ├── backend/              # Python Flask 後端（本地開發）
 │   ├── calculator.py     # 計算機核心模組（加減乘除）
 │   ├── test_calculator.py # 完整的單元測試
@@ -23,9 +17,7 @@ calculator-app/
 │   │   └── App.css      # 樣式
 │   ├── package.json
 │   └── dist/            # 建置輸出
-├── vercel.json          # Vercel 部署配置
-├── requirements.txt     # Python 依賴（Vercel 用）
-└── DEPLOYMENT.md        # 部署指南
+└── README.md
 ```
 
 ## 功能特色
@@ -37,7 +29,6 @@ calculator-app/
 - ✅ 除法 (divide) - 包含除以零的錯誤處理
 - ✅ 完整的單元測試（unittest 和 pytest）
 - ✅ RESTful API 端點
-- ✅ 支援 Vercel Serverless Functions
 
 ### 前端 (React + Vite)
 - ✅ 現代化的計算機介面
@@ -61,19 +52,6 @@ calculator-app/
 - `Backspace` - 刪除最後一個字元
 
 ## 🚀 快速開始
-
-### 部署到 Vercel（推薦）
-
-1. Fork 或 Clone 此專案
-2. 訪問 [Vercel](https://vercel.com)
-3. 匯入 GitHub repository
-4. 配置設定：
-   - **Build Command:** `cd frontend && npm run vercel-build`
-   - **Output Directory:** `frontend/dist`
-   - **Install Command:** `cd frontend && npm install`
-5. 點擊 Deploy
-
-詳細部署指南請參考 [DEPLOYMENT.md](./DEPLOYMENT.md)
 
 ## 本地開發
 
@@ -115,6 +93,14 @@ npm run dev
 ```
 
 前端應用程式將在 `http://localhost:5173` 運行
+
+### 前端 API 設定
+
+若前端不是在本機執行，請設定環境變數 `VITE_API_URL` 指向後端 API（需包含 `/api`），例如：
+
+```bash
+VITE_API_URL=https://your-api.example.com/api
+```
 
 ## API 端點
 
