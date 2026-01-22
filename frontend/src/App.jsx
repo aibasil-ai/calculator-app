@@ -7,6 +7,18 @@ function App() {
   const [operation, setOperation] = useState(null)
   const [waitingForSecondOperand, setWaitingForSecondOperand] = useState(false)
   const [result, setResult] = useState(null)
+  const [expression, setExpression] = useState('') // 運算式歷史
+
+  // 取得運算符號顯示文字
+  const getOperatorSymbol = (op) => {
+    switch (op) {
+      case 'add': return '+'
+      case 'subtract': return '−'
+      case 'multiply': return '×'
+      case 'divide': return '÷'
+      default: return ''
+    }
+  }
 
   // 處理數字鍵輸入
   const handleNumberClick = (num) => {
@@ -24,11 +36,22 @@ function App() {
 
     if (firstOperand === null) {
       setFirstOperand(inputValue)
+      // 開始新的運算式
+      setExpression(display + ' ' + getOperatorSymbol(op))
     } else if (operation) {
       const currentResult = calculate(firstOperand, inputValue, operation)
       currentResult.then((res) => {
         setDisplay(String(res))
         setFirstOperand(res)
+        // 更新運算式：加入目前的數字和新運算符
+        setExpression(prev => prev + ' ' + inputValue + ' ' + getOperatorSymbol(op))
+      })
+    } else {
+      // 連續換運算符
+      setExpression(prev => {
+        const parts = prev.split(' ')
+        parts[parts.length - 1] = getOperatorSymbol(op)
+        return parts.join(' ')
       })
     }
 
@@ -55,44 +78,44 @@ function App() {
     const numB = parseFloat(b);
 
     if (isNaN(numA) || isNaN(numB)) {
-        alert('Error: Invalid number format');
-        return a;
+      alert('Error: Invalid number format');
+      return a;
     }
 
     try {
-        switch (op) {
-            case 'add':
-                res = numA + numB;
-                break;
-            case 'subtract':
-                res = numA - numB;
-                break;
-            case 'multiply':
-                res = numA * numB;
-                break;
-            case 'divide':
-                if (numB === 0) {
-                    throw new Error('Cannot divide by zero');
-                }
-                res = numA / numB;
-                break;
-            default:
-                throw new Error(`Invalid operation: ${op}`);
-        }
+      switch (op) {
+        case 'add':
+          res = numA + numB;
+          break;
+        case 'subtract':
+          res = numA - numB;
+          break;
+        case 'multiply':
+          res = numA * numB;
+          break;
+        case 'divide':
+          if (numB === 0) {
+            throw new Error('Cannot divide by zero');
+          }
+          res = numA / numB;
+          break;
+        default:
+          throw new Error(`Invalid operation: ${op}`);
+      }
 
-        const data = {
-            result: res,
-            operation: op,
-            a: numA,
-            b: numB
-        };
+      const data = {
+        result: res,
+        operation: op,
+        a: numA,
+        b: numB
+      };
 
-        setResult(data);
-        return res;
+      setResult(data);
+      return res;
 
     } catch (error) {
-        alert(`Error: ${error.message}`);
-        return a;
+      alert(`Error: ${error.message}`);
+      return a;
     }
   }
 
@@ -100,8 +123,10 @@ function App() {
     const inputValue = parseFloat(display)
 
     if (firstOperand !== null && operation) {
-      const result = await calculate(firstOperand, inputValue, operation)
-      setDisplay(String(result))
+      const calcResult = await calculate(firstOperand, inputValue, operation)
+      // 更新運算式：加入最後的數字和結果
+      setExpression(prev => prev + ' ' + inputValue + ' = ' + calcResult)
+      setDisplay(String(calcResult))
       setFirstOperand(null)
       setOperation(null)
       setWaitingForSecondOperand(false)
@@ -114,6 +139,7 @@ function App() {
     setOperation(null)
     setWaitingForSecondOperand(false)
     setResult(null)
+    setExpression('') // 清除運算式
   }
 
   const handleBackspace = () => {
@@ -205,15 +231,16 @@ function App() {
           <button onClick={() => handleNumberClick(1)} className="btn">1</button>
           <button onClick={() => handleNumberClick(2)} className="btn">2</button>
           <button onClick={() => handleNumberClick(3)} className="btn">3</button>
-          <button onClick={handleEquals} className="btn btn-equals" style={{gridRow: 'span 2'}}>=</button>
+          <button onClick={handleEquals} className="btn btn-equals" style={{ gridRow: 'span 2' }}>=</button>
 
-          <button onClick={() => handleNumberClick(0)} className="btn" style={{gridColumn: 'span 2'}}>0</button>
+          <button onClick={() => handleNumberClick(0)} className="btn" style={{ gridColumn: 'span 2' }}>0</button>
           <button onClick={handleDecimalClick} className="btn">.</button>
         </div>
       </div>
-      {result && (
-        <div className="result-info">
-          <p>Last calculation: {result.a} {result.operation} {result.b} = {result.result}</p>
+      {expression && (
+        <div className="expression-history">
+          <p className="expression-label">計算過程</p>
+          <p className="expression-text">{expression}</p>
         </div>
       )}
     </div>

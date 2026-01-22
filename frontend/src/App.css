@@ -82,7 +82,8 @@
   cursor: pointer;
   transition: all 0.2s;
   font-weight: 500;
-  touch-action: manipulation; /* 防止手機觸控延遲 */
+  touch-action: manipulation;
+  /* 防止手機觸控延遲 */
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -135,24 +136,41 @@
   background: #66bb6a;
 }
 
-.result-info {
-  background: #2d2d2d;
-  padding: clamp(0.5rem, 2vw, 1rem) clamp(1rem, 3vw, 2rem);
-  border-radius: clamp(6px, 2vw, 10px);
+.expression-history {
+  background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
+  padding: clamp(0.75rem, 2.5vw, 1.25rem) clamp(1rem, 3vw, 2rem);
+  border-radius: clamp(8px, 2vw, 12px);
   color: #fff;
-  font-size: clamp(0.85rem, 2.5vw, 1.1rem);
   max-width: var(--calculator-width);
-  word-wrap: break-word;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
-.result-info p {
+.expression-label {
+  font-size: clamp(0.7rem, 2vw, 0.85rem);
+  color: #888;
+  margin: 0 0 0.5rem 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.expression-text {
+  font-size: clamp(1rem, 3.5vw, 1.4rem);
+  color: #646cff;
   margin: 0;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  font-weight: 500;
+  line-height: 1.5;
 }
 
 /* ===== 手機裝置優化 (寬度 < 480px) ===== */
 @media (max-width: 480px) {
   .keyboard-hint {
-    display: none; /* 手機上隱藏鍵盤提示 */
+    display: none;
+    /* 手機上隱藏鍵盤提示 */
   }
 }
 
