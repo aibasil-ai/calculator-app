@@ -7,6 +7,7 @@ function App() {
   const [tokens, setTokens] = useState([]) // 儲存運算式的 token 陣列 [數字, 運算符, 數字, ...]
   const [currentNumber, setCurrentNumber] = useState('0') // 目前輸入的數字
   const [lastResult, setLastResult] = useState(null) // 是否剛計算完結果
+  const [hasTypedNumber, setHasTypedNumber] = useState(false) // 是否已經輸入數字（用於判斷連續運算符）
 
   // 取得運算符號顯示文字
   const getOperatorSymbol = (op) => {
@@ -98,12 +99,14 @@ function App() {
       setTokens([])
       setExpression('')
       setLastResult(null)
+      setHasTypedNumber(true)
       return
     }
 
     const newNumber = currentNumber === '0' ? String(num) : currentNumber + num
     setCurrentNumber(newNumber)
     setDisplay(newNumber)
+    setHasTypedNumber(true)
   }
 
   // 處理運算符號輸入
@@ -116,6 +119,7 @@ function App() {
       setDisplay(String(lastResult))
       setLastResult(null)
       setTokens([String(lastResult), op])
+      setHasTypedNumber(false) // 剛輸入完運算符，還沒輸入數字
       return
     }
 
@@ -125,24 +129,25 @@ function App() {
       // 第一個數字
       setTokens([num, op])
       setExpression(num + ' ' + getOperatorSymbol(op))
+      setHasTypedNumber(false)
     } else {
-      // 檢查最後一個是否是運算符（連續輸入運算符的情況）
-      if (typeof tokens[tokens.length - 1] === 'string' &&
-        ['add', 'subtract', 'multiply', 'divide'].includes(tokens[tokens.length - 1])) {
-        // 替換最後一個運算符
+      // 根據 hasTypedNumber 來判斷是連續運算符還是新運算
+      if (!hasTypedNumber) {
+        // 如果還沒輸入新數字（連續運算符），則替換最後一個運算符
         const newTokens = [...tokens]
         newTokens[newTokens.length - 1] = op
         setTokens(newTokens)
         // 更新表達式顯示
         setExpression(prev => {
-          const parts = prev.split(' ')
+          const parts = prev.trim().split(' ')
           parts[parts.length - 1] = getOperatorSymbol(op)
           return parts.join(' ')
         })
       } else {
-        // 正常情況：添加數字和運算符
+        // 正常情況：已經輸入了數字，添加該數字和新運算符
         setTokens([...tokens, num, op])
         setExpression(prev => prev + ' ' + num + ' ' + getOperatorSymbol(op))
+        setHasTypedNumber(false)
       }
     }
 
@@ -157,12 +162,14 @@ function App() {
       setTokens([])
       setExpression('')
       setLastResult(null)
+      setHasTypedNumber(true)
       return
     }
 
     if (!currentNumber.includes('.')) {
       setCurrentNumber(currentNumber + '.')
       setDisplay(currentNumber + '.')
+      setHasTypedNumber(true)
     }
   }
 
@@ -207,6 +214,7 @@ function App() {
     setTokens([])
     setCurrentNumber(String(result))
     setLastResult(result)
+    setHasTypedNumber(true) // 視為已經有數字（結果）
   }
 
   // 清除
@@ -216,6 +224,7 @@ function App() {
     setTokens([])
     setExpression('')
     setLastResult(null)
+    setHasTypedNumber(false)
   }
 
   // 退格
