@@ -1,69 +1,89 @@
+/* ===== 響應式設計變數 ===== */
+:root {
+  --calculator-width: clamp(280px, 85vw, 400px);
+  --button-padding: clamp(12px, 4vw, 25px);
+  --button-font-size: clamp(1.1rem, 4vw, 1.8rem);
+  --display-font-size: clamp(1.8rem, 6vw, 3rem);
+  --display-padding: clamp(12px, 3vw, 25px);
+  --gap-size: clamp(6px, 2vw, 12px);
+  --container-padding: clamp(0.5rem, 3vw, 2rem);
+}
+
 #root {
-  max-width: 1280px;
+  max-width: 100%;
   margin: 0 auto;
-  padding: 2rem;
+  padding: var(--container-padding);
   text-align: center;
+  box-sizing: border-box;
 }
 
 .calculator-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2rem;
-  padding: 2rem;
+  gap: clamp(1rem, 3vw, 2rem);
+  padding: var(--container-padding);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .calculator-container h1 {
-  font-size: 2.5rem;
+  font-size: clamp(1.5rem, 5vw, 2.5rem);
   margin-bottom: 0.5rem;
   color: #646cff;
 }
 
 .keyboard-hint {
-  font-size: 0.9rem;
+  font-size: clamp(0.75rem, 2.5vw, 0.9rem);
   color: #888;
   margin-bottom: 0.5rem;
-  max-width: 500px;
+  max-width: 90%;
   line-height: 1.5;
+  padding: 0 1rem;
 }
 
 .calculator {
   background: #1a1a1a;
-  border-radius: 20px;
-  padding: 20px;
+  border-radius: clamp(12px, 3vw, 20px);
+  padding: clamp(12px, 3vw, 20px);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  width: 320px;
+  width: var(--calculator-width);
+  max-width: 95vw;
+  box-sizing: border-box;
 }
 
 .display {
   background: #2d2d2d;
   color: #fff;
-  font-size: 2.5rem;
-  padding: 20px;
+  font-size: var(--display-font-size);
+  padding: var(--display-padding);
   text-align: right;
-  border-radius: 10px;
-  margin-bottom: 20px;
-  min-height: 60px;
+  border-radius: clamp(6px, 2vw, 10px);
+  margin-bottom: clamp(10px, 3vw, 20px);
+  min-height: clamp(40px, 10vw, 70px);
   word-wrap: break-word;
   overflow-wrap: break-word;
+  overflow-x: auto;
 }
 
 .buttons {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
+  gap: var(--gap-size);
 }
 
 .btn {
   background: #3a3a3a;
   color: #fff;
   border: none;
-  border-radius: 10px;
-  font-size: 1.5rem;
-  padding: 20px;
+  border-radius: clamp(6px, 2vw, 10px);
+  font-size: var(--button-font-size);
+  padding: var(--button-padding);
   cursor: pointer;
   transition: all 0.2s;
   font-weight: 500;
+  touch-action: manipulation; /* 防止手機觸控延遲 */
+  -webkit-tap-highlight-color: transparent;
 }
 
 .btn:hover {
@@ -73,6 +93,7 @@
 
 .btn:active {
   transform: translateY(0);
+  background: #4a4a4a;
 }
 
 .btn-operation {
@@ -81,6 +102,10 @@
 }
 
 .btn-operation:hover {
+  background: #535bf2;
+}
+
+.btn-operation:active {
   background: #535bf2;
 }
 
@@ -93,6 +118,10 @@
   background: #ff6666;
 }
 
+.btn-clear:active {
+  background: #ff6666;
+}
+
 .btn-equals {
   background: #4caf50;
   color: #fff;
@@ -102,14 +131,54 @@
   background: #66bb6a;
 }
 
+.btn-equals:active {
+  background: #66bb6a;
+}
+
 .result-info {
   background: #2d2d2d;
-  padding: 1rem 2rem;
-  border-radius: 10px;
+  padding: clamp(0.5rem, 2vw, 1rem) clamp(1rem, 3vw, 2rem);
+  border-radius: clamp(6px, 2vw, 10px);
   color: #fff;
-  font-size: 1.1rem;
+  font-size: clamp(0.85rem, 2.5vw, 1.1rem);
+  max-width: var(--calculator-width);
+  word-wrap: break-word;
 }
 
 .result-info p {
   margin: 0;
+}
+
+/* ===== 手機裝置優化 (寬度 < 480px) ===== */
+@media (max-width: 480px) {
+  .keyboard-hint {
+    display: none; /* 手機上隱藏鍵盤提示 */
+  }
+}
+
+/* ===== 平板裝置優化 (481px - 768px) ===== */
+@media (min-width: 481px) and (max-width: 768px) {
+  :root {
+    --calculator-width: clamp(320px, 60vw, 380px);
+  }
+}
+
+/* ===== 桌面裝置 (> 768px) ===== */
+@media (min-width: 769px) {
+  :root {
+    --calculator-width: 380px;
+    --button-padding: 22px;
+    --button-font-size: 1.6rem;
+    --display-font-size: 2.8rem;
+  }
+}
+
+/* ===== 大螢幕優化 (> 1200px) ===== */
+@media (min-width: 1200px) {
+  :root {
+    --calculator-width: 400px;
+    --button-padding: 25px;
+    --button-font-size: 1.8rem;
+    --display-font-size: 3rem;
+  }
 }
