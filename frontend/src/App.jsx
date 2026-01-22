@@ -240,38 +240,39 @@ function App() {
   useEffect(() => {
     const handleKeyDown = (event) => {
       const key = event.key
+      const code = event.code // 使用 code 來更可靠地檢測 numpad
 
       // 防止預設行為
       if (/^[0-9+\-*/=.]$/.test(key) || key === 'Enter' || key === 'Escape' || key === 'Backspace') {
         event.preventDefault()
       }
 
-      // 數字鍵
+      // 數字鍵 (包含 numpad)
       if (/^[0-9]$/.test(key)) {
         handleNumberClick(parseInt(key))
       }
-      // 小數點
-      else if (key === '.') {
+      // 小數點 (包含 numpad 的 Decimal)
+      else if (key === '.' || code === 'NumpadDecimal') {
         handleDecimalClick()
       }
-      // 加法
-      else if (key === '+') {
+      // 加法 (包含 numpad)
+      else if (key === '+' || code === 'NumpadAdd') {
         handleOperationClick('add')
       }
-      // 減法
-      else if (key === '-') {
+      // 減法 (包含 numpad)
+      else if (key === '-' || code === 'NumpadSubtract') {
         handleOperationClick('subtract')
       }
-      // 乘法
-      else if (key === '*') {
+      // 乘法 (包含 numpad)
+      else if (key === '*' || code === 'NumpadMultiply') {
         handleOperationClick('multiply')
       }
-      // 除法
-      else if (key === '/') {
+      // 除法 (包含 numpad)
+      else if (key === '/' || code === 'NumpadDivide') {
         handleOperationClick('divide')
       }
-      // 等號
-      else if (key === 'Enter' || key === '=') {
+      // 等號 (包含 numpad Enter)
+      else if (key === 'Enter' || key === '=' || code === 'NumpadEnter') {
         handleEquals()
       }
       // 清除
@@ -286,7 +287,7 @@ function App() {
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [currentNumber, tokens, lastResult])
+  })
 
   return (
     <div className="calculator-container">
