@@ -2,21 +2,30 @@
 
 一個功能完整的計算機應用程式，包含 Python 後端和 React 前端。
 
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/aibasil-ai/calculator-app)
+
+🌐 **Live Demo:** [部署到 Vercel 後會有 URL]
+
 ## 專案結構
 
 ```
 calculator-app/
-├── backend/              # Python Flask 後端
+├── api/                  # Vercel Serverless Functions
+│   └── index.py         # Python API 端點
+├── backend/              # Python Flask 後端（本地開發）
 │   ├── calculator.py     # 計算機核心模組（加減乘除）
 │   ├── test_calculator.py # 完整的單元測試
 │   ├── app.py           # Flask API 伺服器
 │   └── requirements.txt # Python 依賴套件
-└── frontend/            # React + Vite 前端
-    ├── src/
-    │   ├── App.jsx      # 計算機 UI 元件
-    │   └── App.css      # 樣式
-    ├── package.json
-    └── ...
+├── frontend/            # React + Vite 前端
+│   ├── src/
+│   │   ├── App.jsx      # 計算機 UI 元件（支援鍵盤）
+│   │   └── App.css      # 樣式
+│   ├── package.json
+│   └── dist/            # 建置輸出
+├── vercel.json          # Vercel 部署配置
+├── requirements.txt     # Python 依賴（Vercel 用）
+└── DEPLOYMENT.md        # 部署指南
 ```
 
 ## 功能特色
@@ -28,6 +37,7 @@ calculator-app/
 - ✅ 除法 (divide) - 包含除以零的錯誤處理
 - ✅ 完整的單元測試（unittest 和 pytest）
 - ✅ RESTful API 端點
+- ✅ 支援 Vercel Serverless Functions
 
 ### 前端 (React + Vite)
 - ✅ 現代化的計算機介面
@@ -37,8 +47,35 @@ calculator-app/
 - ✅ 即時顯示計算結果
 - ✅ 顯示最後一次計算的詳細資訊
 - ✅ 與後端 API 整合
+- ✅ **完整鍵盤支援**（數字鍵盤、運算符號、Enter、Esc、Backspace）
 
-## 安裝與執行
+### 🎹 鍵盤支援
+- `0-9` - 數字輸入（主鍵盤或數字鍵盤）
+- `.` - 小數點
+- `+` - 加法
+- `-` - 減法
+- `*` - 乘法
+- `/` - 除法
+- `Enter` 或 `=` - 計算結果
+- `Esc` 或 `C` - 清除
+- `Backspace` - 刪除最後一個字元
+
+## 🚀 快速開始
+
+### 部署到 Vercel（推薦）
+
+1. Fork 或 Clone 此專案
+2. 訪問 [Vercel](https://vercel.com)
+3. 匯入 GitHub repository
+4. 配置設定：
+   - **Build Command:** `cd frontend && npm run vercel-build`
+   - **Output Directory:** `frontend/dist`
+   - **Install Command:** `cd frontend && npm install`
+5. 點擊 Deploy
+
+詳細部署指南請參考 [DEPLOYMENT.md](./DEPLOYMENT.md)
+
+## 本地開發
 
 ### 1. 後端設定
 
